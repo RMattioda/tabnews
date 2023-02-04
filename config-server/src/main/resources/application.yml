@@ -1,0 +1,28 @@
+server:
+  port: 8888
+
+logging:
+  level:
+    ROOT: INFO
+    org.spring.framework.cloud.config: DEBUG
+
+spring:
+    application:
+        name: configserver
+    cloud:
+        config:
+            server:
+                git:
+                    uri: https://github.com/RMattioda/tabnews-config-server
+                    default-label: main
+                    username: RMattioda
+                    password: ${GITHUB_TOKEN}
+                    clone-on-start: true
+        fail-fast: true
+    security:
+        user:
+            name: spring_cloud_user
+            password: ${SPRING_CLOUD_PASSWORD}
+jasypt:
+    encryptor:
+        password: ${JASYPT_PASSWORD}

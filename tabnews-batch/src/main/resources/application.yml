@@ -1,0 +1,10 @@
+spring:
+    application:
+        name: tabnews-batch
+    profiles:
+        active: tabnews_batch
+    config:
+        import: configserver:http://localhost:8888
+jasypt:
+    encryptor:
+        password: ${JASYPT_PASSWORD}

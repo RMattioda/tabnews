@@ -1,0 +1,45 @@
+version: '3.7'
+services:
+  config-server:
+    image: ${GROUP_ID}/config.server:${SERVICE_VERSION:-latest}
+    ports:
+      - "5007:5007"
+      - "8888:8888"
+    volumes:
+      - "./docker-logs:/workspace/config-server/logs"
+    environment:
+      - "JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5007 -Xms128m -Xmx256m"
+      - "JASYPT_PASSWORD=${JASYPT_PASSWORD}"
+      - "SPRING_CLOUD_PASSWORD=ENC(LwQBVZ3qdUSLDt57eEewoCFGYi4kEFCkqG1cDFTTywPKAsOYSVTrapWy3tOwC8oa+TRDw1lnzvXVuHsYBqddnA==)"
+      - "GITHUB_TOKEN=ENC(U1TidTRjhzP4LYrNOr2vOScOf1y7ytIHnyPhPOWAUL4zq4Cz1VKvqldowi3pMcMc5pobOhXgaISUiWDWJPGLOsqrasjSRkqBw+tpjqcufqQ=)"
+    networks:
+      - ${GLOBAL_NETWORK:-services}
+    elastic-query-service:
+        image: ${GROUP_ID}/tabnews.search.service:${SERVICE_VERSION:-latest}
+        ports:
+            - "5008:5008"
+            - "8081:8081"
+        volumes:
+            - "./docker-logs:/workspace/tabnews-search-service/logs"
+            - "./check-config-server.sh:/usr/local/bin/check-config-server.sh"
+        user: root
+        entrypoint: ["check-config-server.sh"]
+        environment:
+            - "JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5008 -Xms128m -Xmx256m"
+            - "LOGGING_LEVEL_COM_RODEST=info"
+            - "LOGGING_LEVEL_ROOT=info"
+            - "ELASTIC-CONFIG_INDEX-NAME=tabnews"
+            - "ELASTIC-CONFIG_CONNECTION-URL=http://elastic-1:9200"
+            - "SERVER_PORT=8183"
+            - "SERVER_SERVLET_CONTEXT-PATH=/elastic-query-service"
+            - "SPRING_CLOUD_CONFIG_URI=http://config-server:8888"
+            - "JASYPT_PASSWORD=${JASYPT_PASSWORD}"
+            - "SPRING_CLOUD_PASSWORD=ENC(LwQBVZ3qdUSLDt57eEewoCFGYi4kEFCkqG1cDFTTywPKAsOYSVTrapWy3tOwC8oa+TRDw1lnzvXVuHsYBqddnA==)"
+            - "GITHUB_TOKEN=ENC(U1TidTRjhzP4LYrNOr2vOScOf1y7ytIHnyPhPOWAUL4zq4Cz1VKvqldowi3pMcMc5pobOhXgaISUiWDWJPGLOsqrasjSRkqBw+tpjqcufqQ=)"
+        networks:
+            - ${GLOBAL_NETWORK:-services}
+        depends_on:
+            - elastic-1
+            - elastic-2
+            - elastic-3
+            - config-server
